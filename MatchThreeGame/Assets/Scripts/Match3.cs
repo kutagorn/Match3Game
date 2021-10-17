@@ -5,7 +5,13 @@ using UnityEngine;
 public class Match3 : MonoBehaviour
 {
     public ArrayLayout boardLayout;
+    [Header("UI Elements")]
     public Sprite[] pieces;//Bu diziyi kullanarak oyunda kaç tane farklı parça olduğunu ve oyunda kaç tane farklı parça olmasını istediğimizi ayarlayabiliriz.
+    public RectTransform gameBoard;
+
+    [Header("Prefabs")]
+    public GameObject nodePiece;
+
     int width = 8;//Board un eni
     int height = 8;//Board un boyu
     Node[,] board;
@@ -13,18 +19,19 @@ public class Match3 : MonoBehaviour
     System.Random random;
     void Start()
     {
+        StartGame();
     }
     void StartGame()
     {
         string seed = getRandomSeed();
         random = new System.Random(seed.GetHashCode());
         InitializeBoard();
+        VerifyBoard();
+        InstaniateBoard();
     }
     void InitializeBoard() 
     {
-        //board un yaratılısı
-        board = new Node[width, height];
-        
+        board = new Node[width, height];  
         for(int y = 0; y < height; y++)
             {
                 for (int x = 0; x < width; x++)
@@ -36,6 +43,7 @@ public class Match3 : MonoBehaviour
 
     void VerifyBoard()//Board oluşturulurken rand. olduğu için 3 tane yan yana koyup puan almasını engellemek amacı ile kullanılır.
     {   
+        List<int> remove;
         for (int x = 0; x < width; x++)
         
             {
@@ -44,8 +52,36 @@ public class Match3 : MonoBehaviour
                     Point p = new Point(x, y);
                     int val = getValueAtPoint(p);
                     if  (val <= 0) continue;//val 0 veya -1 ise (boş veya çukur) hiç bir şey yapmadan devam edilir.
+
+                    remove = new List<int>();
+                    while(isConnected(p, true).Count > 0)
+                    {
+                        val = getValueAtPoint(p);
+                        if(!remove.Contains(val))
+                        {
+                            remove.Add(val);
+                        }
+                        setValueAtPoint(p, newValue(ref remove));
+                    }
                 }
             }
+    }
+    void InstaniateBoard()
+    {
+     for (int x = 0; x < width; x++)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                int val = board[x, y].value;
+                if(val <= 0) continue;
+                GameObject p = Instantiate(nodePiece, gameBoard);
+                NodePiece node = p.GetComponent<NodePiece>();
+                RectTransform rect = p.GetComponent<RectTransform>();
+                rect.anchoredPosition = new Vector2(32 + (64 * x), -32 - (64 * y));
+                node.Initialize(val, new Point(x,y), pieces[val-1]);
+            }
+        }
+
     }
 
     List<Point> isConnected(Point p, bool main) //puan alırsak anlayacağız ki 3 tane yan yana gelmiş ve o 3lünün değiştirilmesi gerekmektedir.
@@ -138,7 +174,7 @@ public class Match3 : MonoBehaviour
         /* 
         Contains ile bakmama sebibim Unity iki value eşit mi diye bakma şeklinden kaynaklanmaktadır
         if(point[i] == p) bu tarz bir sorgu kullandığım zaman noktanın tam (exact) value'suna bakmaktadır, 
-        ve ben her seferinde yeni point yarattığım için(45.Satır) değerler aynı olmasına rağmen asıl değerleri hiç bir zaman aynı olmayacaktır.
+        ve ben her seferinde yeni point yarattığım için(52.Satır) değerler aynı olmasına rağmen asıl değerleri hiç bir zaman aynı olmayacaktır.
         ve if sorgusu her seferinde false dönecektir. O yüzden kendim yazma gereğinde hissettim. 
         */
         foreach(Point p in add)//Eklemek istediğim "Point"leri döngü içerisine alıyoruz
@@ -166,7 +202,26 @@ public class Match3 : MonoBehaviour
 
     int getValueAtPoint(Point p)//küçük yardımcı fonk. her seferinde yazmayalım diye
     {
+        if(p.x < 0 || p.x >= width || p.y < 0 || p.y >= height) return -1;
         return board[p.x,p.y].value;
+    }
+
+    void setValueAtPoint(Point p, int v)
+    {
+        board[p.x, p.y].value = v;
+    }
+
+    int newValue(ref List<int> remove)
+    {
+        List<int> available = new List<int>();//bunlar kullanabileceğim müsait olanlar.
+        for (int i = 0; i < pieces.Length; i++)
+            available.Add(i + 1);
+        foreach (int i in remove)
+        {
+            available.Remove(i);
+        }
+        if (available.Count <= 0) return 0;
+        return available[random.Next(0, available.Count)];
     }
 
     void Update()
