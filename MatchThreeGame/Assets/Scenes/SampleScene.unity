@@ -385,6 +385,11 @@ MonoBehaviour:
     - row: 0000000000000000
     - row: 0000000000000000
     - row: 0000000000000000
+  pieces:
+  - {fileID: 21300000, guid: 161c0450060a5c747b67cf2f86e882be, type: 3}
+  - {fileID: 21300000, guid: b4db2931cd0655847ae423addbebfd92, type: 3}
+  - {fileID: 21300000, guid: 57d41273bac5e1f4a939e71166fa2d47, type: 3}
+  - {fileID: 21300000, guid: 3da140004bd2a934c8b2b11bdce4b5d4, type: 3}
 --- !u!4 &910473331
 Transform:
   m_ObjectHideFlags: 0
