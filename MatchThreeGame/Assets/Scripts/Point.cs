@@ -23,7 +23,7 @@ public class Point
         x += p.x;
         y += p.y;
     }
-    public Vector2 toVector()
+    public Vector2 ToVector()
     {
         return new Vector2(x, y);
     }
